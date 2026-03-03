@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+
+{% block title %}Assets - PNP Inventory System{% endblock %}
+
+{% block page_title %}Assets Management{% endblock %}
+
+{% block content %}
+<!-- Header Actions -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="d-flex align-items-center">
+            <h5 class="mb-0 me-3">Asset Inventory</h5>
+            <span class="badge bg-primary">{{ page_obj.paginator.count }} total assets</span>
+        </div>
+    </div>
+    <div class="col-md-6 text-end">
+        {% if user.role == 'branch_admin' or user.role == 'provincial_admin' %}
+        <a href="{% url 'assets:asset_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Add New Asset
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Filters</h6>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="{{ current_search }}" placeholder="Search assets...">
+            </div>
+            
+            <div class="col-md-2">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">All Status</option>
+                    {% for status_value, status_label in status_choices %}
+                    <option value="{{ status_value }}" {% if current_status == status_value %}selected{% endif %}>
+                        {{ status_label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-2">
+                <label for="asset_type" class="form-label">Asset Type</label>
+                <select class="form-select" id="asset_type" name="asset_type">
+                    <option value="">All Types</option>
+                    {% for type_value, type_label in asset_type_choices %}
+                    <option value="{{ type_value }}" {% if current_asset_type == type_value %}selected{% endif %}>
+                        {{ type_label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            {% if user.role == 'provincial_admin' %}
+            <div class="col-md-3">
+                <label for="branch" class="form-label">Branch</label>
+                <select class="form-select" id="branch" name="branch">
+                    <option value="">All Branches</option>
+                    {% for branch in branches %}
+                    <option value="{{ branch.id }}" {% if current_branch == branch.id|stringformat:"s" %}selected{% endif %}>
+                        {{ branch.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search me-2"></i>Search
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-12">
+                <a href="{% url 'assets:asset_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-2"></i>Clear Filters
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Assets Table -->
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Property Number</th>
+                        <th>Type</th>
+                        <th>Brand/Model</th>
+                        <th>Serial Number</th>
+                        <th>Status</th>
+                        <th>Assigned To</th>
+                        <th>Branch</th>
+                        <th>Date Acquired</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asset in assets %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'assets:asset_detail' asset.pk %}" class="text-decoration-none fw-bold">
+                                {{ asset.property_number }}
+                            </a>
+                        </td>
+                        <td>{{ asset.get_asset_type_display }}</td>
+                        <td>{{ asset.brand }} {{ asset.model }}</td>
+                        <td>{{ asset.serial_number|default:"-" }}</td>
+                        <td>
+                            <span class="badge bg-{{ asset.status_display_color }}">
+                                {{ asset.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ asset.assigned_personnel|default:"-" }}</td>
+                        <td>{{ asset.branch.name }}</td>
+                        <td>{{ asset.date_acquired|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'assets:asset_detail' asset.pk %}" class="btn btn-sm btn-outline-primary" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if user.role == 'branch_admin' or user.role == 'provincial_admin' %}
+                                <a href="{% url 'assets:asset_update' asset.pk %}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% endif %}
+                                {% if user.role == 'provincial_admin' %}
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" 
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal" 
+                                        data-asset-id="{{ asset.pk }}" data-asset-name="{{ asset.property_number }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                            No assets found matching your criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Asset pagination">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">Previous</a>
+                </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">{{ num }}</a>
+                </li>
+                {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">Last</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Export Options -->
+<div class="row mt-3">
+    <div class="col-12 text-end">
+        <div class="btn-group" role="group">
+            <a href="{% url 'reports:monthly' %}" class="btn btn-outline-success">
+                <i class="bi bi-file-earmark-pdf me-2"></i>Export PDF
+            </a>
+            <a href="{% url 'reports:monthly' %}" class="btn btn-outline-success">
+                <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
+            </a>
+            <a href="{% url 'reports:monthly' %}" class="btn btn-outline-success">
+                <i class="bi bi-file-earmark-csv me-2"></i>Export CSV
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-submit form on filter change
+    document.querySelectorAll('#status, #asset_type, #branch').forEach(element => {
+        element.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+    
+    // Search on Enter key
+    document.getElementById('search').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            this.form.submit();
+        }
+    });
+</script>
+
+<!-- Delete Confirmation Modal -->
+{% if user.role == 'provincial_admin' %}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-exclamation-triangle text-warning display-4 me-3"></i>
+                    <div>
+                        <h6 class="mb-1">Delete Asset</h6>
+                        <p class="text-muted mb-0">Are you sure you want to delete this asset? This action cannot be undone.</p>
+                    </div>
+                </div>
+                <div class="alert alert-danger">
+                    <strong>Asset to delete:</strong> <span id="deleteAssetName"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-2"></i>Delete Asset
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteForm = document.getElementById('deleteForm');
+    const deleteAssetName = document.getElementById('deleteAssetName');
+    
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const assetId = button.getAttribute('data-asset-id');
+            const assetName = button.getAttribute('data-asset-name');
+            
+            deleteAssetName.textContent = assetName;
+            deleteForm.action = `/assets/${assetId}/delete/`;
+        });
+    }
+});
+</script>
+{% endif %}
+
+{% endblock %}

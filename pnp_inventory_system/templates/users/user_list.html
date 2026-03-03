@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management - PNP Inventory System{% endblock %}
+
+{% block page_title %}User Management{% endblock %}
+
+{% block content %}
+<!-- Header Actions -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="d-flex align-items-center">
+            <h5 class="mb-0 me-3">System Users</h5>
+            <span class="badge bg-primary">{{ page_obj.paginator.count }} total users</span>
+        </div>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{% url 'users:user_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Add New User
+        </a>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Branch</th>
+                        <th>Status</th>
+                        <th>Last Login</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <strong>{{ user.username }}</strong>
+                            {% if user.is_superuser %}
+                            <span class="badge bg-warning ms-1">Superuser</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.get_full_name|default:'Not set' }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <span class="badge bg-{{ user.role|yesno:'primary,secondary' }}">
+                                {{ user.get_role_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if user.branch %}
+                                {{ user.branch.name }}
+                            {% elif user.role == 'provincial_admin' %}
+                                <span class="text-muted">All Branches</span>
+                            {% else %}
+                                <span class="text-danger">Not Assigned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.last_login %}
+                                {{ user.last_login|date:"M d, Y H:i" }}
+                            {% else %}
+                                <span class="text-muted">Never</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'users:profile' %}" class="btn btn-sm btn-outline-primary" title="View Profile">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'users:user_update' user.pk %}" class="btn btn-sm btn-outline-warning" title="Edit User">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="bi bi-people display-4 d-block mb-2"></i>
+                            No users found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="User pagination">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+<!-- User Statistics -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">User Statistics</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h4 class="text-primary">{{ total_users }}</h4>
+                            <small class="text-muted">Total Users</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h4 class="text-success">{{ active_users }}</h4>
+                            <small class="text-muted">Active Users</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h4 class="text-info">{{ provincial_admins }}</h4>
+                            <small class="text-muted">Provincial Admins</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">{{ branch_admins }}</h4>
+                        <small class="text-muted">Branch Admins</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

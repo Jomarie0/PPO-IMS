@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if object %}Edit Asset{% else %}Add New Asset{% endif %} - PNP Inventory System
+{% endblock %}
+
+{% block page_title %}
+    {% if object %}Edit Asset{% else %}Add New Asset{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    {% if object %}Edit Asset: {{ object.property_number }}{% else %}Add New Asset{% endif %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.property_number.id_for_label }}" class="form-label">Property Number *</label>
+                            {{ form.property_number }}
+                            {% if form.property_number.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.property_number.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.asset_type.id_for_label }}" class="form-label">Asset Type *</label>
+                            {{ form.asset_type }}
+                            {% if form.asset_type.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.asset_type.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.brand.id_for_label }}" class="form-label">Brand *</label>
+                            {{ form.brand }}
+                            {% if form.brand.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.brand.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.model.id_for_label }}" class="form-label">Model *</label>
+                            {{ form.model }}
+                            {% if form.model.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.model.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.serial_number.id_for_label }}" class="form-label">Serial Number</label>
+                            {{ form.serial_number }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">Status *</label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.status.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.processor.id_for_label }}" class="form-label">Processor</label>
+                            {{ form.processor }}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.ram.id_for_label }}" class="form-label">RAM</label>
+                            {{ form.ram }}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.storage.id_for_label }}" class="form-label">Storage</label>
+                            {{ form.storage }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.date_acquired.id_for_label }}" class="form-label">Date Acquired *</label>
+                            {{ form.date_acquired }}
+                            {% if form.date_acquired.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.date_acquired.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.warranty_expiration.id_for_label }}" class="form-label">Warranty Expiration</label>
+                            {{ form.warranty_expiration }}
+                            {% if form.warranty_expiration.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.warranty_expiration.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.assigned_personnel.id_for_label }}" class="form-label">Assigned Personnel</label>
+                            {{ form.assigned_personnel }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.branch.id_for_label }}" class="form-label">Branch *</label>
+                            {{ form.branch }}
+                            {% if form.branch.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.branch.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="{{ form.remarks.id_for_label }}" class="form-label">Remarks</label>
+                            {{ form.remarks }}
+                        </div>
+                    </div>
+                    
+                    {% if form.is_update %}  <!-- Update form - no hidden field needed -->
+                    {% else %}  <!-- Creation form - show hidden field -->
+                        {% if form.branch_hidden %}
+                            {{ form.branch_hidden }}
+                        {% endif %}
+                    {% endif %}
+                    
+                    <div class="text-end">
+                        <a href="{% url 'assets:asset_list' %}" class="btn btn-secondary me-2">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>
+                            {% if object %}Update Asset{% else %}Add Asset{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Help</h6>
+            </div>
+            <div class="card-body">
+                <h6>Property Number Format:</h6>
+                <p class="text-muted small">Use format: BRANCH-CODE-YEAR-NNN (e.g., LUCENA-2024-001)</p>
+                
+                <h6>Asset Types:</h6>
+                <ul class="text-muted small">
+                    <li>Desktop Computer</li>
+                    <li>Laptop Computer</li>
+                    <li>Printer</li>
+                    <li>Scanner</li>
+                    <li>Router</li>
+                    <li>Network Switch</li>
+                    <li>Server</li>
+                    <li>Monitor</li>
+                    <li>Keyboard</li>
+                    <li>Mouse</li>
+                    <li>Other</li>
+                </ul>
+                
+                <h6>Status Options:</h6>
+                <ul class="text-muted small">
+                    <li><span class="badge bg-success">Active</span> - Currently in use</li>
+                    <li><span class="badge bg-warning">Under Repair</span> - Being repaired</li>
+                    <li><span class="badge bg-danger">Missing</span> - Cannot be located</li>
+                    <li><span class="badge bg-secondary">Condemned</span> - Beyond repair</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

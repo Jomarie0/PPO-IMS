@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Custom Report - PNP Inventory System{% endblock %}
+
+{% block page_title %}Generate Custom Report{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Custom Report Generator</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="start_date" class="form-label">Start Date *</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="end_date" class="form-label">End Date *</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" required>
+                        </div>
+                    </div>
+                    
+                    {% if user.role == 'provincial_admin' %}
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="branch" class="form-label">Branch</label>
+                            <select class="form-select" id="branch" name="branch">
+                                <option value="">All Branches (Provincial Report)</option>
+                                {% for branch in branches %}
+                                <option value="{{ branch.id }}">{{ branch.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Leave blank to generate a consolidated report for all branches</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Export Format *</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="format" id="pdf" value="pdf" checked>
+                                <label class="btn btn-outline-primary" for="pdf">
+                                    <i class="bi bi-file-earmark-pdf me-2"></i>PDF
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="format" id="excel" value="excel">
+                                <label class="btn btn-outline-success" for="excel">
+                                    <i class="bi bi-file-earmark-excel me-2"></i>Excel
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="format" id="csv" value="csv">
+                                <label class="btn btn-outline-info" for="csv">
+                                    <i class="bi bi-file-earmark-csv me-2"></i>CSV
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-end">
+                        <a href="{% url 'reports:home' %}" class="btn btn-secondary me-2">
+                            <i class="bi bi-arrow-left me-2"></i>Back
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-download me-2"></i>Generate Report
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Report Information</h6>
+            </div>
+            <div class="card-body">
+                <h6>Custom Report Features:</h6>
+                <ul>
+                    <li>Flexible date range selection</li>
+                    <li>Specific time period analysis</li>
+                    <li>Targeted asset tracking</li>
+                    <li>Customizable scope and filters</li>
+                    <li>Special event reporting</li>
+                    <li>Audit trail analysis</li>
+                </ul>
+                
+                <h6>Use Cases:</h6>
+                <div class="mb-3">
+                    <strong>Incident Investigation:</strong> Generate reports for specific time periods when issues occurred
+                </div>
+                <div class="mb-3">
+                    <strong>Audit Preparation:</strong> Create reports for audit periods
+                </div>
+                <div class="mb-3">
+                    <strong>Special Projects:</strong> Track assets during specific initiatives
+                </div>
+                <div>
+                    <strong>Performance Analysis:</strong> Compare specific time periods
+                </div>
+                
+                {% if user.role == 'provincial_admin' %}
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Provincial Admin:</strong> Custom reports allow you to analyze specific periods across all branches or focus on particular branches.
+                </div>
+                {% endif %}
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Note:</strong> Custom reports include assets that were created OR updated within the selected date range.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set default dates to last month
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+    
+    document.getElementById('start_date').value = lastMonth.toISOString().split('T')[0];
+    document.getElementById('end_date').value = endOfLastMonth.toISOString().split('T')[0];
+});
+</script>
+{% endblock %}

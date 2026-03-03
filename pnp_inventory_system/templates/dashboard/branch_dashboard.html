@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ branch.name }} Dashboard - PNP Inventory System{% endblock %}
+
+{% block page_title %}{{ branch.name }} Dashboard{% endblock %}
+
+{% block content %}
+<!-- Branch Information -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="card-title mb-1">{{ branch.name }}</h5>
+                        <p class="text-muted mb-0">{{ branch.address }}</p>
+                        <small class="text-muted">Branch Code: {{ branch.code }}</small>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <span class="badge bg-success fs-6">{{ user.get_role_display }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-stats h-100">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Total Assets</h5>
+                        <span class="h2 font-weight-bold mb-0">{{ total_assets }}</span>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-primary text-white rounded-circle shadow">
+                            <i class="bi bi-laptop"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-stats success h-100">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Active Assets</h5>
+                        <span class="h2 font-weight-bold mb-0">{{ active_assets }}</span>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-success text-white rounded-circle shadow">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-stats warning h-100">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Under Repair</h5>
+                        <span class="h2 font-weight-bold mb-0">{{ under_repair_assets }}</span>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
+                            <i class="bi bi-tools"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-stats danger h-100">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Missing</h5>
+                        <span class="h2 font-weight-bold mb-0">{{ missing_assets }}</span>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-danger text-white rounded-circle shadow">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Asset Status Distribution</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Asset Types</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie pt-4 pb-2">
+                    <canvas id="assetTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Warranty Information and Recent Assets -->
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Warranty Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Under Warranty</span>
+                        <span class="badge bg-success">{{ assets_under_warranty }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" style="width: {% if total_assets > 0 %}{% widthratio assets_under_warranty total_assets 100 %}{% else %}0{% endif %}%"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Expiring Soon (90 days)</span>
+                        <span class="badge bg-warning">{{ warranty_expiring_soon }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-warning" style="width: {% if total_assets > 0 %}{% widthratio warranty_expiring_soon total_assets 100 %}{% else %}0{% endif %}%"></div>
+                    </div>
+                </div>
+                
+                {% if warranty_expiring_soon > 0 %}
+                <div class="alert alert-warning mt-3">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Action Required:</strong> {{ warranty_expiring_soon }} assets warranty expiring soon.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Recently Added Assets</h6>
+                <a href="{% url 'assets:asset_list' %}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Property Number</th>
+                                <th>Type</th>
+                                <th>Brand/Model</th>
+                                <th>Status</th>
+                                <th>Date Added</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for asset in recent_assets %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'assets:asset_detail' asset.pk %}" class="text-decoration-none">
+                                        {{ asset.property_number }}
+                                    </a>
+                                </td>
+                                <td>{{ asset.get_asset_type_display }}</td>
+                                <td>{{ asset.brand }} {{ asset.model }}</td>
+                                <td>
+                                    <span class="badge bg-{{ asset.status_display_color }}">
+                                        {{ asset.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ asset.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if user.role == 'branch_admin' %}
+                                    <a href="{% url 'assets:asset_update' asset.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">No recent assets found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+{% if user.role == 'branch_admin' %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'assets:asset_create' %}" class="btn btn-primary btn-block">
+                            <i class="bi bi-plus-circle me-2"></i>Add New Asset
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'reports:monthly' %}" class="btn btn-info btn-block">
+                            <i class="bi bi-file-earmark-text me-2"></i>Monthly Report
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'reports:quarterly' %}" class="btn btn-success btn-block">
+                            <i class="bi bi-file-earmark-bar-graph me-2"></i>Quarterly Report
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'assets:asset_list' %}?status=under_repair" class="btn btn-warning btn-block">
+                            <i class="bi bi-tools me-2"></i>View Repairs
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Status Distribution Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    const statusData = {{ status_distribution|safe }};
+    
+    new Chart(statusCtx, {
+        type: 'bar',
+        data: {
+            labels: statusData.labels,
+            datasets: [{
+                label: 'Number of Assets',
+                data: statusData.data,
+                backgroundColor: statusData.colors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Asset Type Distribution Chart
+    const assetTypeCtx = document.getElementById('assetTypeChart').getContext('2d');
+    const assetTypeData = {{ asset_type_distribution|safe }};
+    
+    new Chart(assetTypeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: assetTypeData.labels,
+            datasets: [{
+                data: assetTypeData.data,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 159, 64, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

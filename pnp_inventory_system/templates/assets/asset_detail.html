@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ asset.property_number }} - PNP Inventory System{% endblock %}
+
+{% block page_title %}Asset Details: {{ asset.property_number }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Asset Information</h6>
+                <div>
+                    {% if user.role == 'branch_admin' or user.role == 'provincial_admin' %}
+                    <a href="{% url 'assets:asset_update' asset.pk %}" class="btn btn-sm btn-warning me-2">
+                        <i class="bi bi-pencil me-1"></i>Edit
+                    </a>
+                    {% endif %}
+                    {% if user.role == 'provincial_admin' %}
+                    <a href="{% url 'assets:asset_delete' asset.pk %}" class="btn btn-sm btn-danger">
+                        <i class="bi bi-trash me-1"></i>Delete
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Property Number</label>
+                        <p class="fw-bold">{{ asset.property_number }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Asset Type</label>
+                        <p>{{ asset.get_asset_type_display }}</p>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Brand</label>
+                        <p>{{ asset.brand }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Model</label>
+                        <p>{{ asset.model }}</p>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Serial Number</label>
+                        <p>{{ asset.serial_number|default:'Not specified' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Status</label>
+                        <p><span class="badge bg-{{ asset.status_display_color }}">{{ asset.get_status_display }}</span></p>
+                    </div>
+                </div>
+                
+                {% if asset.processor or asset.ram or asset.storage %}
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Processor</label>
+                        <p>{{ asset.processor|default:'Not specified' }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">RAM</label>
+                        <p>{{ asset.ram|default:'Not specified' }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Storage</label>
+                        <p>{{ asset.storage|default:'Not specified' }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Date Acquired</label>
+                        <p>{{ asset.date_acquired|date:'F d, Y' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Warranty Expiration</label>
+                        <p>
+                            {% if asset.warranty_expiration %}
+                                {{ asset.warranty_expiration|date:'F d, Y' }}
+                                {% if asset.is_under_warranty %}
+                                    <span class="badge bg-success ms-2">Under Warranty</span>
+                                {% else %}
+                                    <span class="badge bg-danger ms-2">Expired</span>
+                                {% endif %}
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Assigned Personnel</label>
+                        <p>{{ asset.assigned_personnel|default:'Not assigned' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Branch</label>
+                        <p>{{ asset.branch.name }} ({{ asset.branch.code }})</p>
+                    </div>
+                </div>
+                
+                {% if asset.remarks %}
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label class="form-label text-muted">Remarks</label>
+                        <p>{{ asset.remarks|linebreaks }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Created At</label>
+                        <p>{{ asset.created_at|date:'F d, Y H:i' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Last Updated</label>
+                        <p>{{ asset.updated_at|date:'F d, Y H:i' }}</p>
+                    </div>
+                </div>
+                
+                <div class="text-end">
+                    <a href="{% url 'assets:asset_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Assets
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Asset Status</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <span class="badge bg-{{ asset.status_display_color }} fs-6 p-3">
+                        {{ asset.get_status_display }}
+                    </span>
+                </div>
+                
+                {% if asset.is_under_warranty %}
+                <div class="alert alert-success">
+                    <i class="bi bi-shield-check me-2"></i>
+                    <strong>Under Warranty</strong><br>
+                    <small>Expires: {{ asset.warranty_expiration|date:'F d, Y' }}</small>
+                </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted">Asset Age</label>
+                    <p class="fw-bold">{{ asset.age_in_years }} years</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+            </div>
+            <div class="card-body">
+                {% for log in audit_logs %}
+                <div class="d-flex align-items-start mb-3">
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">{{ log.get_action_display }}</div>
+                        <div class="text-muted small">{{ log.description }}</div>
+                        <div class="text-xs text-muted">
+                            {{ log.user.username }} • {{ log.timestamp|date:'M d, Y H:i' }}
+                        </div>
+                    </div>
+                </div>
+                {% if not forloop.last %}<hr>{% endif %}
+                {% empty %}
+                <p class="text-muted text-center">No recent activity</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

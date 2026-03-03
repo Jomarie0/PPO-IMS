@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+
+{% block title %}Provincial Dashboard - PNP Inventory System{% endblock %}
+
+{% block page_title %}Provincial Dashboard{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-stats h-100">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Total Assets</h5>
+                        <span class="h2 font-weight-bold mb-0">{{ total_assets }}</span>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-primary text-white rounded-circle shadow">
+                            <i class="bi bi-laptop"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-stats success h-100">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Active Assets</h5>
+                        <span class="h2 font-weight-bold mb-0">{{ active_assets }}</span>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-success text-white rounded-circle shadow">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-stats warning h-100">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Under Repair</h5>
+                        <span class="h2 font-weight-bold mb-0">{{ under_repair_assets }}</span>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
+                            <i class="bi bi-tools"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-stats danger h-100">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Missing</h5>
+                        <span class="h2 font-weight-bold mb-0">{{ missing_assets }}</span>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-danger text-white rounded-circle shadow">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Branch Comparison</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="branchComparisonChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Asset Type Distribution</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie pt-4 pb-2">
+                    <canvas id="assetTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Branch Statistics and Recent Assets -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Branch Statistics</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="branchTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Branch</th>
+                                <th>Total</th>
+                                <th>Active</th>
+                                <th>Under Repair</th>
+                                <th>Missing</th>
+                                <th>Condemned</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stats in branch_stats %}
+                            <tr>
+                                <td>{{ stats.name }}</td>
+                                <td><span class="badge bg-primary">{{ stats.total }}</span></td>
+                                <td><span class="badge bg-success">{{ stats.active }}</span></td>
+                                <td><span class="badge bg-warning">{{ stats.under_repair }}</span></td>
+                                <td><span class="badge bg-danger">{{ stats.missing }}</span></td>
+                                <td><span class="badge bg-secondary">{{ stats.condemned }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Most Damaged Branch</h6>
+            </div>
+            <div class="card-body">
+                {% if most_damaged_branch %}
+                <div class="text-center">
+                    <h5 class="text-danger">{{ most_damaged_branch.name }}</h5>
+                    <p class="text-muted">{{ most_damaged_branch.under_repair }} under repair + {{ most_damaged_branch.missing }} missing = {{ most_damaged_branch.under_repair|add:most_damaged_branch.missing }} assets affected</p>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-warning" style="width: {{ most_damaged_branch.under_repair }}%">
+                            Under Repair: {{ most_damaged_branch.under_repair }}
+                        </div>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-danger" style="width: {{ most_damaged_branch.missing }}%">
+                            Missing: {{ most_damaged_branch.missing }}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No damaged assets reported</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Recently Added Assets</h6>
+            </div>
+            <div class="card-body">
+                {% for asset in recent_assets %}
+                <div class="d-flex align-items-center mb-2">
+                    <div class="flex-grow-1">
+                        <div class="text-sm">{{ asset.property_number }}</div>
+                        <div class="text-xs text-muted">{{ asset.brand }} {{ asset.model }}</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="text-sm">{{ asset.branch.name }}</div>
+                        <div class="text-xs text-muted">{{ asset.created_at|date:"M d, Y" }}</div>
+                    </div>
+                </div>
+                {% if not forloop.last %}<hr>{% endif %}
+                {% empty %}
+                <p class="text-muted text-center">No recent assets</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Branch Comparison Chart
+    const branchCtx = document.getElementById('branchComparisonChart').getContext('2d');
+    const branchData = {{ branch_comparison_data|safe }};
+    
+    new Chart(branchCtx, {
+        type: 'bar',
+        data: {
+            labels: branchData.labels,
+            datasets: [
+                {
+                    label: 'Total Assets',
+                    data: branchData.total,
+                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Active',
+                    data: branchData.active,
+                    backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Under Repair',
+                    data: branchData.under_repair,
+                    backgroundColor: 'rgba(255, 206, 86, 0.8)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Missing',
+                    data: branchData.missing,
+                    backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Asset Type Distribution Chart
+    const assetTypeCtx = document.getElementById('assetTypeChart').getContext('2d');
+    const assetTypeData = {{ asset_type_distribution|safe }};
+    
+    new Chart(assetTypeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: assetTypeData.labels,
+            datasets: [{
+                data: assetTypeData.data,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 159, 64, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

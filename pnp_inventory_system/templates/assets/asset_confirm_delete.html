@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Asset - PNP Inventory System{% endblock %}
+
+{% block page_title %}Delete Asset{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-danger">Confirm Asset Deletion</h6>
+            </div>
+            <div class="card-body text-center">
+                <i class="bi bi-exclamation-triangle display-1 text-warning mb-3"></i>
+                <h4 class="mb-3">Delete Asset?</h4>
+                <p class="text-muted mb-4">
+                    You are about to delete the asset <strong>{{ object.property_number }}</strong> 
+                    ({{ object.brand }} {{ object.model }}). This action cannot be undone.
+                </p>
+                
+                <div class="alert alert-danger">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Warning:</strong> All audit logs for this asset will remain, but the asset itself will be permanently removed from the system.
+                </div>
+                
+                <div class="mb-4">
+                    <h6>Asset Details:</h6>
+                    <div class="row text-start">
+                        <div class="col-6">
+                            <strong>Property Number:</strong><br>
+                            {{ object.property_number }}
+                        </div>
+                        <div class="col-6">
+                            <strong>Type:</strong><br>
+                            {{ object.get_asset_type_display }}
+                        </div>
+                        <div class="col-6 mt-2">
+                            <strong>Brand/Model:</strong><br>
+                            {{ object.brand }} {{ object.model }}
+                        </div>
+                        <div class="col-6 mt-2">
+                            <strong>Status:</strong><br>
+                            <span class="badge bg-{{ object.status_display_color }}">{{ object.get_status_display }}</span>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <strong>Branch:</strong><br>
+                            {{ object.branch.name }}
+                        </div>
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="{% url 'assets:asset_detail' object.pk %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-2"></i>Delete Asset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
