@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Add IP to Whitelist{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Back Button -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <a href="{% url 'cybersecurity:whitelist_management' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Whitelist Management
+                    </a>
+                </div>
+            </div>
+
+            <h2 class="mb-4">
+                <i class="fas fa-shield-alt text-success"></i>
+                Add IP to Whitelist
+            </h2>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus"></i>
+                        Whitelist IP Address
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.ip_address.id_for_label }}" class="form-label">
+                                        {{ form.ip_address.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.ip_address }}
+                                    {% if form.ip_address.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.ip_address.errors %}
+                                                <small>{{ error }}</small><br>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Enter the IP address that should never be blocked (e.g., 192.168.1.100)
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.reason.id_for_label }}" class="form-label">
+                                        {{ form.reason.label }}
+                                    </label>
+                                    {{ form.reason }}
+                                    {% if form.reason.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.reason.errors %}
+                                                <small>{{ error }}</small><br>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Optional: Reason why this IP should never be blocked
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-plus"></i>
+                                Add to Whitelist
+                            </button>
+                            <a href="{% url 'cybersecurity:whitelist_management' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i>
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Information Card -->
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        About IP Whitelisting
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-check text-success"></i> What Whitelisting Does</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-arrow-right text-muted"></i> Prevents automatic IP blocking</li>
+                                <li><i class="fas fa-arrow-right text-muted"></i> Overrides security policies</li>
+                                <li><i class="fas fa-arrow-right text-muted"></i> Always allows access</li>
+                                <li><i class="fas fa-arrow-right text-muted"></i> Takes precedence over blocks</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-exclamation-triangle text-warning"></i> Use Cases</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-arrow-right text-muted"></i> Critical servers</li>
+                                <li><i class="fas fa-arrow-right text-muted"></i> Admin workstations</li>
+                                <li><i class="fas fa-arrow-right text-muted"></i> Development environments</li>
+                                <li><i class="fas fa-arrow-right text-muted"></i> Trusted networks</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

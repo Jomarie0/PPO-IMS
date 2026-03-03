@@ -11,7 +11,9 @@ class AssetForm(forms.ModelForm):
         fields = [
             'property_number', 'asset_type', 'brand', 'model', 'serial_number',
             'processor', 'ram', 'storage', 'status', 'date_acquired', 
-            'warranty_expiration', 'assigned_personnel', 'branch', 'remarks'
+            'warranty_expiration', 'assigned_personnel', 'branch', 'remarks',
+            'os_version', 'last_patch_date', 'antivirus_installed', 'antivirus_last_updated',
+            'firewall_enabled', 'disk_encrypted', 'last_security_scan'
         ]
         widgets = {
             'property_number': forms.TextInput(attrs={'class': 'form-control'}),
@@ -28,6 +30,13 @@ class AssetForm(forms.ModelForm):
             'assigned_personnel': forms.TextInput(attrs={'class': 'form-control'}),
             'branch': forms.Select(attrs={'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'os_version': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Windows 11 Pro'}),
+            'last_patch_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'antivirus_installed': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'antivirus_last_updated': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'firewall_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'disk_encrypted': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'last_security_scan': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
     
     def __init__(self, *args, **kwargs):

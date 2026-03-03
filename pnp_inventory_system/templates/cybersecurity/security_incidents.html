@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+
+{% block title %}Security Incidents - PNP Inventory System{% endblock %}
+
+{% block page_title %}Security Incidents{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Back Button -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="{% url 'cybersecurity:blocklist_management' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Cybersecurity
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card border-left-danger shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                    Critical Incidents
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ critical_incidents_count }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-exclamation-triangle-fill fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    High Priority
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ high_incidents_count }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-exclamation-triangle fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Unresolved
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ unresolved_incidents_count }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-clock fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Resolved
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ resolved_incidents_count }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-check-circle fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filters and Actions -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Security Incidents</h6>
+                <div>
+                    <a href="{% url 'cybersecurity:create_incident' %}" class="btn btn-primary btn-action">
+                        <i class="bi bi-plus-circle me-2"></i>Report Incident
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="severity" class="form-label">Severity</label>
+                        <select name="severity" id="severity" class="form-select">
+                            <option value="">All Severities</option>
+                            {% for severity_value, severity_label in severity_choices %}
+                            <option value="{{ severity_value }}" {% if current_severity == severity_value %}selected{% endif %}>
+                                {{ severity_label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="type" class="form-label">Incident Type</label>
+                        <select name="type" id="type" class="form-select">
+                            <option value="">All Types</option>
+                            {% for type_value, type_label in type_choices %}
+                            <option value="{{ type_value }}" {% if current_type == type_value %}selected{% endif %}>
+                                {{ type_label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="unresolved" {% if current_status == 'unresolved' %}selected{% endif %}>Unresolved</option>
+                            <option value="resolved" {% if current_status == 'resolved' %}selected{% endif %}>Resolved</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="bi bi-funnel me-2"></i>Apply Filters
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Incidents Table -->
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="incidentsTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Asset</th>
+                                <th>Type</th>
+                                <th>Severity</th>
+                                <th>Description</th>
+                                <th>Reported By</th>
+                                <th>Date Reported</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for incident in incidents %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'assets:asset_detail' incident.asset.pk %}" class="text-decoration-none">
+                                        {{ incident.asset.property_number }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ incident.get_incident_type_display }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ incident.severity_color }}">
+                                        {{ incident.get_severity_display }}
+                                    </span>
+                                </td>
+                                <td>{{ incident.description|truncatechars:80 }}</td>
+                                <td>{{ incident.reported_by.username|default:"Unknown" }}</td>
+                                <td>{{ incident.date_reported|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    {% if incident.resolved %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>Resolved
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning">
+                                            <i class="bi bi-clock me-1"></i>Unresolved
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="#" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" 
+                                           data-bs-target="#incidentModal{{ incident.pk }}">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        {% if not incident.resolved %}
+                                        <form method="post" action="{% url 'cybersecurity:resolve_incident' incident.pk %}" 
+                                              class="d-inline" onsubmit="return confirm('Are you sure you want to mark this incident as resolved?')">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="resolution_notes" value="Resolved via quick action">
+                                            <button type="submit" class="btn btn-sm btn-outline-success">
+                                                <i class="bi bi-check"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Incident Detail Modal -->
+                            <div class="modal fade" id="incidentModal{{ incident.pk }}" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">
+                                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                                Security Incident Details
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <strong>Asset:</strong><br>
+                                                    <a href="{% url 'assets:asset_detail' incident.asset.pk %}">
+                                                        {{ incident.asset.property_number }} - {{ incident.asset.brand }} {{ incident.asset.model }}
+                                                    </a>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <strong>Type:</strong><br>
+                                                    <span class="badge bg-info">{{ incident.get_incident_type_display }}</span>
+                                                </div>
+                                            </div>
+                                            <hr>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <strong>Severity:</strong><br>
+                                                    <span class="badge bg-{{ incident.severity_color }}">
+                                                        {{ incident.get_severity_display }}
+                                                    </span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <strong>Status:</strong><br>
+                                                    {% if incident.resolved %}
+                                                        <span class="badge bg-success">Resolved</span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning">Unresolved</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <hr>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <strong>Reported By:</strong><br>
+                                                    {{ incident.reported_by.username|default:"Unknown" }}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <strong>Date Reported:</strong><br>
+                                                    {{ incident.date_reported|date:"F d, Y H:i" }}
+                                                </div>
+                                            </div>
+                                            {% if incident.resolved %}
+                                            <hr>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <strong>Resolved By:</strong><br>
+                                                    {{ incident.resolved_by.username }}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <strong>Date Resolved:</strong><br>
+                                                    {{ incident.date_resolved|date:"F d, Y H:i" }}
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            <hr>
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <strong>Description:</strong><br>
+                                                    {{ incident.description|linebreaks }}
+                                                </div>
+                                            </div>
+                                            {% if incident.resolution_notes %}
+                                            <hr>
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <strong>Resolution Notes:</strong><br>
+                                                    {{ incident.resolution_notes|linebreaks }}
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            {% if not incident.resolved %}
+                                            <form method="post" action="{% url 'cybersecurity:resolve_incident' incident.pk %}" 
+                                                  class="d-inline" id="resolveForm{{ incident.pk }}">
+                                                {% csrf_token %}
+                                                <div class="input-group">
+                                                    <input type="text" name="resolution_notes" class="form-control" 
+                                                           placeholder="Resolution notes..." required>
+                                                    <button type="submit" class="btn btn-success">
+                                                        <i class="bi bi-check-circle me-1"></i>Resolve
+                                                    </button>
+                                                </div>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center">No security incidents found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav aria-label="Incidents pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

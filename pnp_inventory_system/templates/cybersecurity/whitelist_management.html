@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Whitelist Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Back Button -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <a href="{% url 'cybersecurity:blocklist_management' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Cybersecurity
+                    </a>
+                </div>
+            </div>
+
+            <h2 class="mb-4">
+                <i class="fas fa-shield-alt text-success"></i>
+                IP Whitelist Management
+            </h2>
+
+            <!-- Overview Cards -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-check-circle"></i>
+                                Active Whitelisted IPs
+                            </h5>
+                            <h2 class="mb-0">{{ total_whitelisted }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-secondary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-pause-circle"></i>
+                                Inactive Whitelisted IPs
+                            </h5>
+                            <h2 class="mb-0">{{ total_inactive }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-list"></i>
+                                Total Whitelisted IPs
+                            </h5>
+                            <h2 class="mb-0">{{ total_whitelisted|add:total_inactive }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <a href="{% url 'cybersecurity:add_whitelisted_ip' %}" class="btn btn-success">
+                        <i class="fas fa-plus"></i>
+                        Add IP to Whitelist
+                    </a>
+                    <a href="{% url 'cybersecurity:blocklist_management' %}" class="btn btn-primary">
+                        <i class="fas fa-ban"></i>
+                        Manage Blocklist
+                    </a>
+                </div>
+            </div>
+
+            <!-- Whitelisted IPs Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i>
+                        Whitelisted IP Addresses
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if whitelist_items %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>IP Address</th>
+                                        <th>Reason</th>
+                                        <th>Added By</th>
+                                        <th>Date Added</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in whitelist_items %}
+                                    <tr>
+                                        <td>
+                                            <code>{{ item.ip_address }}</code>
+                                        </td>
+                                        <td>{{ item.reason|default:"No reason provided" }}</td>
+                                        <td>{{ item.added_by.get_full_name|default:"System" }}</td>
+                                        <td>{{ item.date_added|date:"Y-m-d H:i" }}</td>
+                                        <td>
+                                            {% if item.is_active %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm {% if item.is_active %}btn-warning{% else %}btn-success{% endif %}"
+                                                    onclick="toggleWhitelistStatus({{ item.id }}, '{{ item.ip_address }}')">
+                                                {% if item.is_active %}
+                                                    <i class="fas fa-pause"></i> Disable
+                                                {% else %}
+                                                    <i class="fas fa-play"></i> Enable
+                                                {% endif %}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if is_paginated %}
+                            <nav aria-label="Whitelist pagination">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            No IP addresses have been whitelisted yet. 
+                            <a href="{% url 'cybersecurity:add_whitelisted_ip' %}">Add your first whitelisted IP</a>.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleWhitelistStatus(id, ip) {
+    if (confirm('Are you sure you want to toggle the whitelist status for IP: ' + ip + '?')) {
+        fetch('/cybersecurity/whitelist/toggle/' + id + '/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while toggling whitelist status.');
+        });
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

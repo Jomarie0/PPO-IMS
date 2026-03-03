@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}Report Security Incident - PNP Inventory System{% endblock %}
+
+{% block page_title %}Report Security Incident{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Back Button -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <a href="{% url 'cybersecurity:security_incidents' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Security Incidents
+                    </a>
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Report Security Incident
+                    </h6>
+                </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.asset.id_for_label }}" class="form-label">Affected Asset *</label>
+                                {{ form.asset }}
+                                {% if form.asset.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.asset.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                                <div class="form-text">Select the asset affected by this incident</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.incident_type.id_for_label }}" class="form-label">Incident Type *</label>
+                                {{ form.incident_type }}
+                                {% if form.incident_type.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.incident_type.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.severity.id_for_label }}" class="form-label">Severity Level *</label>
+                                {{ form.severity }}
+                                {% if form.severity.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.severity.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                                <div class="form-text">Select the severity level of this incident</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <strong>Severity Guidelines:</strong><br>
+                                    <small>
+                                        <strong>Low:</strong> Minimal impact, easily contained<br>
+                                        <strong>Medium:</strong> Some impact, requires attention<br>
+                                        <strong>High:</strong> Significant impact, immediate response needed<br>
+                                        <strong>Critical:</strong> Severe impact, emergency response required
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Detailed Description *</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.description.errors %}{{ error }}{% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Provide detailed information about the incident (minimum 10 characters)</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'cybersecurity:security_incidents' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Report Incident
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Information Panel -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-info">
+                    <i class="bi bi-info-circle me-2"></i>Incident Reporting Guide
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6>What to Include</h6>
+                <ul class="small">
+                    <li><strong>Date & Time:</strong> When the incident occurred</li>
+                    <li><strong>Affected Systems:</strong> Which assets/users were impacted</li>
+                    <li><strong>Impact Description:</strong> What happened and how it affects operations</li>
+                    <li><strong>Immediate Actions:</strong> What steps were taken initially</li>
+                    <li><strong>Evidence:</strong> Any logs, screenshots, or documentation</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-warning">
+                    <i class="bi bi-lightbulb me-2"></i>Quick Reporting Tips
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Report Immediately:</strong> Don't delay reporting security incidents.
+                </div>
+                
+                <h6>Incident Types</h6>
+                <ul class="small">
+                    <li><strong>Malware:</strong> Virus, ransomware, spyware infections</li>
+                    <li><strong>Unauthorized Access:</strong> Intrusion attempts, suspicious logins</li>
+                    <li><strong>Data Breach:</strong> Unauthorized data access or exfiltration</li>
+                    <li><strong>Phishing:</strong> Email or website spoofing attempts</li>
+                    <li><strong>Hardware Theft:</strong> Physical theft of equipment</li>
+                    <li><strong>Other:</strong> Any other security-related incident</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="bi bi-shield-check me-2"></i>Next Steps
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-2">After reporting an incident:</p>
+                <ol class="small">
+                    <li>Incident will be logged and tracked</li>
+                    <li>Appropriate personnel will be notified</li>
+                    <li>Investigation will begin based on severity</li>
+                    <li>Resolution actions will be documented</li>
+                    <li>Follow-up monitoring will be implemented</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

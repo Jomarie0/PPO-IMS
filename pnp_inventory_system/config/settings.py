@@ -25,7 +25,12 @@ SECRET_KEY = 'django-insecure-eev$zty%tpwbe&+$(+*l=ww)qlny_5i@s5i95gm9#u4=1#p*=l
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver']
+# SECURITY WARNING: don't run with debug turned on in production!
+# DEBUG = False
+
+# SECURITY WARNING: don't run with debug turned on in production!
+
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver', 'www.y8.com', 'sub.www.y8.com', '0.0.0.0', '*']
 
 
 # Application definition
@@ -44,6 +49,7 @@ INSTALLED_APPS = [
     'reports.apps.ReportsConfig',
     'dashboard.apps.DashboardConfig',
     'audit_logs.apps.AuditLogsConfig',
+    'cybersecurity.apps.CybersecurityConfig',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +60,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Security middleware for IP blocking and login tracking
+    'cybersecurity.middleware.SecurityMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

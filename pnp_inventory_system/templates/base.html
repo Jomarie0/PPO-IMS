@@ -115,6 +115,19 @@
                             </a>
                         </li>
                         
+                        {% if user.role == 'super_admin' or user.role == 'provincial_admin' %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.namespace == 'cybersecurity' %}active{% endif %}" href="{% url 'cybersecurity:blocklist_management' %}">
+                                <i class="bi bi-shield-check me-2"></i> Cybersecurity
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'whitelist' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'cybersecurity:whitelist_management' %}">
+                                <i class="bi bi-shield-plus me-2"></i> IP Whitelist
+                            </a>
+                        </li>
+                        {% endif %}
+                        
                         {% if user.role == 'provincial_admin' or user.role == 'super_admin' %}
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.namespace == 'users' and 'user' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'users:user_list' %}">

@@ -27,6 +27,7 @@ urlpatterns = [
     path('reports/', include('reports.urls', namespace='reports')),
     path('branches/', include('branches.urls', namespace='branches')),
     path('audit/', include('audit_logs.urls', namespace='audit_logs')),
+    path('cybersecurity/', include('cybersecurity.urls', namespace='cybersecurity')),
 ]
 
 # Serve media and static files during development

@@ -1,10 +1,11 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Avg
 from django.utils import timezone
 from datetime import timedelta
 from assets.models import Asset
 from branches.models import Branch
+from cybersecurity.models import BlockedIP, BlockedDomain, SecurityIncident, LoginAttempt
 import json
 
 @login_required
@@ -41,6 +42,38 @@ def provincial_dashboard(request):
     missing_assets = Asset.objects.filter(status='missing').count()
     condemned_assets = Asset.objects.filter(status='condemned').count()
     
+    # Security statistics
+    total_blocked_ips = BlockedIP.objects.filter(is_active=True).count()
+    total_blocked_domains = BlockedDomain.objects.filter(is_active=True).count()
+    
+    # Failed login attempts in last 24 hours
+    twenty_four_hours_ago = timezone.now() - timedelta(hours=24)
+    failed_logins_24h = LoginAttempt.objects.filter(
+        success=False,
+        timestamp__gte=twenty_four_hours_ago
+    ).count()
+    
+    # Security incidents
+    total_incidents = SecurityIncident.objects.count()
+    unresolved_incidents = SecurityIncident.objects.filter(resolved=False).count()
+    critical_incidents = SecurityIncident.objects.filter(severity='critical', resolved=False).count()
+    
+    # Security compliance statistics
+    assets_with_antivirus = Asset.objects.filter(antivirus_installed=True).count()
+    assets_with_firewall = Asset.objects.filter(firewall_enabled=True).count()
+    assets_with_encryption = Asset.objects.filter(disk_encrypted=True).count()
+    
+    # Calculate average compliance score
+    compliance_scores = []
+    for asset in Asset.objects.all():
+        compliance_scores.append(asset.compliance_score)
+    avg_compliance_score = sum(compliance_scores) / len(compliance_scores) if compliance_scores else 0
+    
+    # Risk level distribution
+    risk_distribution = {'Low': 0, 'Medium': 0, 'High': 0, 'Critical': 0}
+    for asset in Asset.objects.all():
+        risk_distribution[asset.risk_level] += 1
+    
     # Branch statistics
     branch_stats = []
     for branch in Branch.objects.filter(is_active=True):
@@ -75,6 +108,11 @@ def provincial_dashboard(request):
         count=Count('id')
     ).order_by('-count')
     
+    # Recent security incidents
+    recent_incidents = SecurityIncident.objects.select_related(
+        'asset', 'reported_by'
+    ).order_by('-date_reported')[:5]
+    
     # Prepare data for charts
     branch_comparison_data = {
         'labels': [stats['name'] for stats in branch_stats],
@@ -90,6 +128,12 @@ def provincial_dashboard(request):
         'data': [item['count'] for item in asset_type_data],
     }
     
+    risk_level_distribution = {
+        'labels': list(risk_distribution.keys()),
+        'data': list(risk_distribution.values()),
+        'colors': ['#28a745', '#ffc107', '#dc3545', '#343a40']
+    }
+    
     context = {
         'user_role': 'provincial_admin',
         'total_assets': total_assets,
@@ -102,6 +146,19 @@ def provincial_dashboard(request):
         'recent_assets': recent_assets,
         'branch_comparison_data': json.dumps(branch_comparison_data),
         'asset_type_distribution': json.dumps(asset_type_distribution),
+        # Security data
+        'total_blocked_ips': total_blocked_ips,
+        'total_blocked_domains': total_blocked_domains,
+        'failed_logins_24h': failed_logins_24h,
+        'total_incidents': total_incidents,
+        'unresolved_incidents': unresolved_incidents,
+        'critical_incidents': critical_incidents,
+        'avg_compliance_score': round(avg_compliance_score, 1),
+        'assets_with_antivirus': assets_with_antivirus,
+        'assets_with_firewall': assets_with_firewall,
+        'assets_with_encryption': assets_with_encryption,
+        'risk_level_distribution': json.dumps(risk_level_distribution),
+        'recent_incidents': recent_incidents,
     }
     
     return render(request, 'dashboard/provincial_dashboard.html', context)

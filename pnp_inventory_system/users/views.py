@@ -47,6 +47,34 @@ class CustomLoginView(LoginView):
     
     def get_success_url(self):
         return reverse_lazy('dashboard:home')
+    
+    def form_invalid(self, form):
+        """
+        Handle invalid login attempts with custom error messages
+        """
+        # Check if user exists but credentials are wrong
+        username = form.cleaned_data.get('username')
+        if username:
+            try:
+                user = CustomUser.objects.get(username=username)
+                if not user.is_active:
+                    messages.error(self.request, 'Your account has been deactivated. Please contact an administrator.')
+                else:
+                    messages.error(self.request, 'Invalid password. Please try again.')
+            except CustomUser.DoesNotExist:
+                messages.error(self.request, 'Invalid username or password. Please try again.')
+        else:
+            messages.error(self.request, 'Invalid username or password. Please try again.')
+        
+        return super().form_invalid(form)
+    
+    def get_context_data(self, **kwargs):
+        """
+        Add additional context for the login form
+        """
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'Login - PNP Inventory System'
+        return context
 
 class CustomLogoutView(LogoutView):
     """

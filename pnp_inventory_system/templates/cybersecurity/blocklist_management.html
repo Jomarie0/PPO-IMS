@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+
+{% block title %}Blocklist Management - PNP Inventory System{% endblock %}
+
+{% block page_title %}Blocklist Management{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Security Overview Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Blocked IPs
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ blocked_ips.paginator.count }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-shield-exclamation fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    Blocked Domains
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ blocked_domains.paginator.count }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-globe fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Active Tokens
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ active_tokens_count }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-key fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Agent Download
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <a href="{% url 'cybersecurity:agent_download' %}" class="btn btn-info btn-sm">
+                                        <i class="bi bi-download me-1"></i> Download
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-file-earmark-code fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <a href="{% url 'cybersecurity:add_blocked_ip' %}" class="btn btn-primary btn-action me-2">
+                            <i class="bi bi-plus-circle me-2"></i>Block IP Address
+                        </a>
+                        <a href="{% url 'cybersecurity:add_blocked_domain' %}" class="btn btn-warning btn-action">
+                            <i class="bi bi-plus-circle me-2"></i>Block Domain
+                        </a>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <a href="{% url 'cybersecurity:login_analytics' %}" class="btn btn-info btn-action">
+                            <i class="bi bi-graph-up me-2"></i>Login Analytics
+                        </a>
+                        <a href="{% url 'cybersecurity:security_incidents' %}" class="btn btn-danger btn-action">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Security Incidents
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Blocked IPs Table -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-shield-exclamation me-2"></i>Blocked IP Addresses
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="blockedIPsTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>IP Address</th>
+                                <th>Reason</th>
+                                <th>Blocked By</th>
+                                <th>Date Blocked</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ip in blocked_ips %}
+                            <tr>
+                                <td><code>{{ ip.ip_address }}</code></td>
+                                <td>{{ ip.reason|truncatechars:50 }}</td>
+                                <td>{{ ip.blocked_by.username|default:"System" }}</td>
+                                <td>{{ ip.date_blocked|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    {% if ip.is_active %}
+                                        <span class="badge bg-danger">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if ip.is_active %}
+                                        <button class="btn btn-sm btn-warning" onclick="toggleBlockStatus('ip', '{{ ip.id }}')">
+                                            <i class="bi bi-pause"></i>Disable
+                                        </button>
+                                    {% else %}
+                                        <button class="btn btn-sm btn-success" onclick="toggleBlockStatus('ip', '{{ ip.id }}')">
+                                            <i class="bi bi-play"></i>Enable
+                                        </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No blocked IPs found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                {% if blocked_ips.has_other_pages %}
+                <nav aria-label="IP pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if blocked_ips.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?ip_page=1">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?ip_page={{ blocked_ips.previous_page_number }}">Previous</a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ blocked_ips.number }} of {{ blocked_ips.paginator.num_pages }}
+                            </span>
+                        </li>
+                        
+                        {% if blocked_ips.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?ip_page={{ blocked_ips.next_page_number }}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?ip_page={{ blocked_ips.paginator.num_pages }}">Last</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Blocked Domains Table -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-globe me-2"></i>Blocked Domains
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="blockedDomainsTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Domain</th>
+                                <th>Reason</th>
+                                <th>Blocked By</th>
+                                <th>Date Blocked</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for domain in blocked_domains %}
+                            <tr>
+                                <td><code>{{ domain.domain }}</code></td>
+                                <td>{{ domain.reason|truncatechars:50 }}</td>
+                                <td>{{ domain.blocked_by.username|default:"System" }}</td>
+                                <td>{{ domain.date_blocked|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    {% if domain.is_active %}
+                                        <span class="badge bg-danger">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if domain.is_active %}
+                                        <button class="btn btn-sm btn-warning" onclick="toggleBlockStatus('domain', '{{ domain.id }}')">
+                                            <i class="bi bi-pause"></i>Disable
+                                        </button>
+                                    {% else %}
+                                        <button class="btn btn-sm btn-success" onclick="toggleBlockStatus('domain', '{{ domain.id }}')">
+                                            <i class="bi bi-play"></i>Enable
+                                        </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No blocked domains found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                {% if blocked_domains.has_other_pages %}
+                <nav aria-label="Domain pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if blocked_domains.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?domain_page=1">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?domain_page={{ blocked_domains.previous_page_number }}">Previous</a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ blocked_domains.number }} of {{ blocked_domains.paginator.num_pages }}
+                            </span>
+                        </li>
+                        
+                        {% if blocked_domains.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?domain_page={{ blocked_domains.next_page_number }}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?domain_page={{ blocked_domains.paginator.num_pages }}">Last</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Are you sure you want to perform this action?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmButton">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleBlockStatus(modelType, pk) {
+    const action = modelType === 'ip' ? 'IP address' : 'domain';
+    const message = `Are you sure you want to toggle the status of this ${action}?`;
+    
+    document.getElementById('confirmMessage').textContent = message;
+    
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    modal.show();
+    
+    document.getElementById('confirmButton').onclick = function() {
+        fetch(`/cybersecurity/blocklist/toggle/${modelType}/${pk}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        });
+        
+        modal.hide();
+    };
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

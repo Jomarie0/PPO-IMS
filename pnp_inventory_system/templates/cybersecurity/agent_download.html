@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}Agent Download - PNP Inventory System{% endblock %}
+
+{% block page_title %}Security Agent Download{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-download me-2"></i>Security Agent Download
+                </h6>
+            </div>
+            <div class="card-body">
+                <!-- Agent Information -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h5>PNP Security Agent v1.0</h5>
+                        <p class="text-muted">
+                            The PNP Security Agent provides real-time protection and monitoring for PNP workstations. 
+                            It integrates with the central inventory management system to provide:
+                        </p>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Real-time IP/Domain blocking</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Security compliance monitoring</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Automated threat detection</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Centralized logging and reporting</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Automatic blocklist synchronization</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="bi bi-shield-check display-4 text-primary mb-3"></i>
+                                <h6>System Requirements</h6>
+                                <small class="text-muted">
+                                    Windows 10/11<br>
+                                    2GB RAM minimum<br>
+                                    100MB disk space
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Download Section -->
+                <div class="card border-left-primary shadow mb-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="font-weight-bold text-primary">
+                                    <i class="bi bi-file-earmark-code me-2"></i>Download Security Agent
+                                </h6>
+                                <p class="text-muted mb-0">
+                                    Latest version: <strong>v1.0.0</strong> | Size: <strong>15.2 MB</strong> | 
+                                    Updated: <strong>March 3, 2026</strong>
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button class="btn btn-primary btn-lg" onclick="downloadAgent()">
+                                    <i class="bi bi-download me-2"></i>Download Agent
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Installation Instructions -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-info">
+                            <i class="bi bi-info-circle me-2"></i>Installation Instructions
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Step 1: Generate Token</h6>
+                                <p class="text-muted">
+                                    Each branch requires a unique authentication token. 
+                                    Contact your system administrator to generate a token for your branch.
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Step 2: Install Agent</h6>
+                                <p class="text-muted">
+                                    Download and run the installer with administrator privileges. 
+                                    Follow the on-screen instructions to complete installation.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <h6>Step 3: Configure Agent</h6>
+                                <p class="text-muted">
+                                    Enter your branch token when prompted during setup. 
+                                    The agent will automatically sync with the central server.
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Step 4: Verify Installation</h6>
+                                <p class="text-muted">
+                                    Check the agent status in system tray. 
+                                    Green indicator means successful connection to server.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Branch Token Management -->
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-warning">
+                            <i class="bi bi-key me-2"></i>Branch Token Management
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Administrators:</strong> Use the Django admin interface to generate and manage branch tokens.
+                            Navigate to <strong>Cybersecurity → Branch Agent Tokens</strong> in the admin panel.
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Active Tokens</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Branch</th>
+                                                <th>Token</th>
+                                                <th>Last Sync</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted">
+                                                    <i class="bi bi-info-circle me-2"></i>
+                                                    Token management available in Django admin
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>API Configuration</h6>
+                                <div class="bg-light p-3 rounded">
+                                    <small>
+                                        <strong>API Endpoint:</strong><br>
+                                        <code>https://your-domain.com/cybersecurity/api/blocklist/</code><br><br>
+                                        <strong>Authentication:</strong><br>
+                                        <code>Authorization: Bearer &lt;branch-token&gt;</code><br><br>
+                                        <strong>Sync Frequency:</strong><br>
+                                        Every 5 minutes (recommended)
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Support Information -->
+                <div class="alert alert-warning mt-4">
+                    <h6><i class="bi bi-exclamation-triangle me-2"></i>Important Notes</h6>
+                    <ul class="mb-0">
+                        <li>This agent requires administrator privileges for installation and operation</li>
+                        <li>Ensure firewall allows outbound connections to the server</li>
+                        <li>Keep the agent updated for latest security definitions</li>
+                        <li>Contact IT support for deployment assistance across multiple workstations</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function downloadAgent() {
+    // Simulate download - in production, this would link to actual file
+    const link = document.createElement('a');
+    link.href = '#'; // Replace with actual download URL
+    link.download = 'pnp-security-agent-v1.0.0.exe';
+    link.click();
+    
+    // Show success message
+    alert('Download started! The agent installer will download shortly.');
+}
+</script>
+{% endblock %}

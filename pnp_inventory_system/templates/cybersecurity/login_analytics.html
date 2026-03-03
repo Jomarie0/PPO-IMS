@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+
+{% block title %}Login Analytics - PNP Inventory System{% endblock %}
+
+{% block page_title %}Login Security Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Back Button -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="{% url 'cybersecurity:blocklist_management' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Cybersecurity
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+        <!-- Analytics Overview Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card border-left-danger shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                    Failed Logins (24h)
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ failed_logins_24h }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-x-circle fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    Blocked IPs
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ total_blocked_ips }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-shield-exclamation fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Blocked Domains
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ total_blocked_domains }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-globe fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    System Status
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {% if failed_logins_24h > 10 %}
+                                        <span class="text-danger">High Risk</span>
+                                    {% elif failed_logins_24h > 5 %}
+                                        <span class="text-warning">Medium Risk</span>
+                                    {% else %}
+                                        <span class="text-success">Normal</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-activity fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Suspicious IPs Section -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Suspicious IP Addresses (Last 24 Hours)
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if suspicious_ips %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>IP Address</th>
+                                <th>Failed Attempts</th>
+                                <th>Last Attempt</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ip_data in suspicious_ips %}
+                            <tr>
+                                <td><code>{{ ip_data.ip_address }}</code></td>
+                                <td>
+                                    <span class="badge bg-danger">{{ ip_data.failed_count }}</span>
+                                </td>
+                                <td>{{ ip_data.last_attempt|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger" onclick="blockIP('{{ ip_data.ip_address }}')">
+                                        <i class="bi bi-shield-exclamation me-1"></i>Block Now
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-check-circle display-4 text-success mb-3"></i>
+                    <h5>No Suspicious Activity</h5>
+                    <p class="text-muted">No IP addresses with multiple failed login attempts detected in the last 24 hours.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Recent Failed Attempts -->
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-info">
+                    <i class="bi bi-clock-history me-2"></i>Recent Failed Login Attempts
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if recent_failed %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>IP Address</th>
+                                <th>Username Attempted</th>
+                                <th>User Agent</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in recent_failed %}
+                            <tr>
+                                <td>{{ attempt.timestamp|date:"M d, Y H:i:s" }}</td>
+                                <td><code>{{ attempt.ip_address }}</code></td>
+                                <td>{{ attempt.username_attempted|default:"N/A" }}</td>
+                                <td class="text-truncate" style="max-width: 200px;">{{ attempt.user_agent|truncatechars:50 }}</td>
+                                <td>
+                                    <span class="badge bg-danger">Failed</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-shield-check display-4 text-success mb-3"></i>
+                    <h5>No Failed Attempts</h5>
+                    <p class="text-muted">No failed login attempts recorded in the recent period.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="blockIPModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm IP Block</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to block this IP address?</p>
+                <div class="mb-3">
+                    <label for="blockReason" class="form-label">Reason for blocking:</label>
+                    <input type="text" class="form-control" id="blockReason" placeholder="Suspicious activity detected">
+                </div>
+                <p class="text-muted">
+                    <strong>IP to block:</strong> <code id="ipToBlock"></code>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmBlockIP()">Block IP</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function blockIP(ipAddress) {
+    document.getElementById('ipToBlock').textContent = ipAddress;
+    const modal = new bootstrap.Modal(document.getElementById('blockIPModal'));
+    modal.show();
+}
+
+function confirmBlockIP() {
+    const ipAddress = document.getElementById('ipToBlock').textContent;
+    const reason = document.getElementById('blockReason').value || 'Suspicious activity detected';
+    
+    fetch('/cybersecurity/blocklist/add-ip/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `ip_address=${encodeURIComponent(ipAddress)}&reason=${encodeURIComponent(reason)}&is_active=on`
+    })
+    .then(response => {
+        if (response.ok) {
+            alert('IP address blocked successfully!');
+            location.reload();
+        } else {
+            alert('Error blocking IP address. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while blocking the IP address.');
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
